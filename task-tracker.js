@@ -12,16 +12,33 @@ async function fileExists(filePath) {
     }
 }
 
-async function addTask(name, description) {
+
+async function getTasks() {
     if(!(await fileExists(tasksFile))) {
-        await fs.writeFile(tasksFile)
+        const data = JSON.stringify([])
+        await fs.writeFile(tasksFile, data)
+        return []
+    } else {
+        const data = await fs.readFile(tasksFile);
+        return JSON.parse(data.toString())
     }
 }
 
+async function addTasks(args){
+    const tasks = await getTasks()
+    const [_, name, description] = args
+    const date = new Date()
+    const id = tasks.length
+    const task = {id, name, description, status: "todo", createdAt: date, updatedAt: date};
+    tasks.push(task)
+    await fs.writeFile(tasksFile, JSON.stringify(tasks))
+    console.log(`Task added successfully (ID: ${id + 1})`)
+}
 
-
-
-
+async function listTasks() {
+    const tasks = await getTasks()
+    console.table(tasks)
+}
 
 async function main() {
     const args = process.argv.slice(2)
@@ -29,14 +46,10 @@ async function main() {
 
     switch(action){
         case "add":
-            const [action, name, description] = args
-
-            //check if file exists
-            // get file contents
-            //add item to contents
-            //print added item
-
-            console.log(`Adding ${name}, ${description}`)
+            await addTasks(args)
+            break;
+        case "list":
+            await listTasks()
             break;
         default:
             console.log("incorrect command")
