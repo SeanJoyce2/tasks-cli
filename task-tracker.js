@@ -11,6 +11,15 @@ async function fileExists(filePath) {
     }
 }
 
+async function updateFile(tasks, message){
+    try {
+        await fs.writeFile(tasksFile, JSON.stringify(tasks, null, 2))
+        console.log(message)
+    } catch (error) {
+        console.error("Error writing to file:", error.message)
+    }
+}
+
 
 async function getTasks() {
     if (!(await fileExists(tasksFile))) {
@@ -30,8 +39,7 @@ async function addTasks(args) {
     const id = tasks.length + 1
     const task = {id, name, description, status: "todo", createdAt: date, updatedAt: date};
     tasks.push(task)
-    await fs.writeFile(tasksFile, JSON.stringify(tasks))
-    console.log(`Task added successfully (ID: ${id})`)
+    await updateFile(tasks,`Task added successfully (ID: ${id})` )
 }
 
 async function listTasks(args) {
@@ -67,13 +75,7 @@ async function updateTask(args){
         updatedAt: date
     }
 
-    try {
-        await fs.writeFile(tasksFile, JSON.stringify(tasks, null, 2))
-        console.log(`Task ${taskId} updated successfully`)
-    } catch (error) {
-        console.error("Error writing to file:", error.message)
-    }
-
+    await updateFile(tasks,`Task ${taskId} updated successfully` )
 }
 
 async function updateStatus(args) {
@@ -93,13 +95,10 @@ async function updateStatus(args) {
         task.status = "done"
     }
 
-    try {
-        await fs.writeFile(tasksFile, JSON.stringify(tasks, null, 2))
-        console.log(`Task ${taskId} status updated successfully`)
-    } catch (error) {
-        console.error("Error writing to file:", error.message)
-    }
+    await updateFile(tasks, `Task ${taskId} status updated successfully`)
 }
+
+
 
 async function deleteTask(args){
     const [_, id] = args
@@ -113,15 +112,10 @@ async function deleteTask(args){
     }
 
     tasks.splice(taskIndex, 1)
-
-    try {
-        await fs.writeFile(tasksFile, JSON.stringify(tasks, null, 2))
-        console.log(`Task ${taskId} deleted successfully`)
-    } catch (error) {
-        console.error("Error writing to file:", error.message)
-    }
-
+    await updateFile(tasks, `Task ${taskId} deleted successfully`)
 }
+
+
 
 async function main() {
     const args = process.argv.slice(2)
