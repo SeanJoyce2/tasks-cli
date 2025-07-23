@@ -27,8 +27,13 @@ async function getTasks() {
         await fs.writeFile(tasksFile, data)
         return []
     } else {
-        const data = await fs.readFile(tasksFile);
-        return JSON.parse(data.toString())
+        try {
+            const data = await fs.readFile(tasksFile);
+            return JSON.parse(data.toString())
+        } catch (error) {
+            console.error("Error reading tasks file:", error.message)
+            return []
+        }
     }
 }
 
