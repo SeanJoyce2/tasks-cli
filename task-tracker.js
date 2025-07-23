@@ -1,6 +1,12 @@
 import {promises as fs} from "fs";
 
-const tasksFile = "tasks.json"
+const TASKS_FILENAME = "tasks.json"
+
+const STATUS = {
+    TODO: "todo",
+    IN_PROGRESS: "in-progress",
+    DONE: "done"
+}
 
 async function fileExists(filePath) {
     try {
@@ -13,7 +19,7 @@ async function fileExists(filePath) {
 
 async function updateFile(tasks, message){
     try {
-        await fs.writeFile(tasksFile, JSON.stringify(tasks, null, 2))
+        await fs.writeFile(TASKS_FILENAME, JSON.stringify(tasks, null, 2))
         console.log(message)
     } catch (error) {
         console.error("Error writing to file:", error.message)
@@ -22,13 +28,13 @@ async function updateFile(tasks, message){
 
 
 async function getTasks() {
-    if (!(await fileExists(tasksFile))) {
+    if (!(await fileExists(TASKS_FILENAME))) {
         const data = JSON.stringify([])
-        await fs.writeFile(tasksFile, data)
+        await fs.writeFile(TASKS_FILENAME, data)
         return []
     } else {
         try {
-            const data = await fs.readFile(tasksFile);
+            const data = await fs.readFile(TASKS_FILENAME);
             return JSON.parse(data.toString())
         } catch (error) {
             console.error("Error reading tasks file:", error.message)
@@ -42,7 +48,7 @@ async function addTasks(args) {
     const [_, name, description] = args
     const date = new Date()
     const id = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1
-    const task = {id, name, description, status: "todo", createdAt: date, updatedAt: date};
+    const task = {id, name, description, status: STATUS.TODO, createdAt: date, updatedAt: date};
     tasks.push(task)
     await updateFile(tasks,`Task added successfully (ID: ${id})` )
 }
@@ -52,6 +58,13 @@ async function listTasks(args) {
     const tasks = await getTasks()
 
     if(status){
+        const validStatuses = Object.values(STATUS)
+        if (!validStatuses.includes(status)) {
+            console.log(`Invalid status: ${status}`)
+            console.log(`Valid statuses: ${validStatuses.join(', ')}`)
+            return
+        }
+
         const filteredTasks = tasks.filter(t => t.status === status)
         console.table(filteredTasks)
         return
@@ -95,9 +108,9 @@ async function updateStatus(args) {
     }
 
     if (action === "mark-in-progress") {
-        task.status = "in-progress"
+        task.status = STATUS.IN_PROGRESS
     } else if (action === "mark-done") {
-        task.status = "done"
+        task.status = STATUS.DONE
     }
 
     await updateFile(tasks, `Task ${taskId} status updated successfully`)
@@ -126,6 +139,12 @@ async function main() {
     const args = process.argv.slice(2)
     const action = args[0].trim().toLowerCase()
 
+    if (args.length === 0) {
+        console.log("Usage: node script.js <command> [arguments]")
+        console.log("Commands: add, list, update, delete, mark-in-progress, mark-done")
+        return
+    }
+
     switch (action) {
         case "add":
             await addTasks(args)
@@ -144,7 +163,8 @@ async function main() {
             await deleteTask(args)
             break;
         default:
-            console.log("incorrect command")
+            console.log("Unknown command:", action)
+            console.log("Available commands: add, list, update, delete, mark-in-progress, mark-done")
     }
 
 
