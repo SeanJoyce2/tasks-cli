@@ -34,8 +34,16 @@ async function addTasks(args) {
     console.log(`Task added successfully (ID: ${id})`)
 }
 
-async function listTasks() {
+async function listTasks(args) {
+    const [_, status] = args
     const tasks = await getTasks()
+
+    if(status){
+        const filteredTasks = tasks.filter(t => t.status === status)
+        console.table(filteredTasks)
+        return
+    }
+
     console.table(tasks)
 }
 
@@ -80,9 +88,9 @@ async function updateStatus(args) {
     }
 
     if (action === "mark-in-progress") {
-        task.status = "mark-in-progress"
+        task.status = "in-progress"
     } else if (action === "mark-done") {
-        task.status = "mark-done"
+        task.status = "done"
     }
 
     try {
@@ -124,7 +132,7 @@ async function main() {
             await addTasks(args)
             break;
         case "list":
-            await listTasks()
+            await listTasks(args)
             break;
         case "mark-in-progress":
         case "mark-done":
