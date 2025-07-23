@@ -79,6 +79,11 @@ async function updateTask(args){
     const date = new Date()
     const taskId = parseInt(id)
 
+    if (isNaN(taskId)) {
+        console.log("ID must be a valid number")
+        return
+    }
+
     const taskIndex = tasks.findIndex(({id}) => id === taskId);
 
     if (taskIndex === -1) {
@@ -100,6 +105,12 @@ async function updateStatus(args) {
     const [action, id] = args
     const tasks = await getTasks()
     const taskId = parseInt(id)
+
+    if (isNaN(taskId)) {
+        console.log("ID must be a valid number")
+        return
+    }
+
     const task = tasks.find(({id}) => id === taskId);
 
     if (!task) {
@@ -137,13 +148,21 @@ async function deleteTask(args){
 
 async function main() {
     const args = process.argv.slice(2)
-    const action = args[0].trim().toLowerCase()
+
 
     if (args.length === 0) {
         console.log("Usage: node script.js <command> [arguments]")
-        console.log("Commands: add, list, update, delete, mark-in-progress, mark-done")
+        console.log("Commands:")
+        console.log("  add <name> <description>     - Add a new task")
+        console.log("  list [status]                - List all tasks or filter by status")
+        console.log("  update <id> <name> <desc>    - Update a task")
+        console.log("  delete <id>                  - Delete a task")
+        console.log("  mark-in-progress <id>        - Mark task as in progress")
+        console.log("  mark-done <id>               - Mark task as done")
         return
     }
+
+    const action = args[0].trim().toLowerCase()
 
     switch (action) {
         case "add":
