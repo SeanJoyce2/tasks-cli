@@ -2,7 +2,6 @@ import {promises as fs} from "fs";
 
 const tasksFile = "tasks.json"
 
-
 async function fileExists(filePath) {
     try {
         await fs.access(filePath)
@@ -40,6 +39,35 @@ async function listTasks() {
     console.table(tasks)
 }
 
+async function updateTask(args){
+    const [_, id, name, description] = args
+    const tasks = await getTasks()
+    const date = new Date()
+    const taskId = parseInt(id)
+
+    const taskIndex = tasks.findIndex(({id}) => id === taskId);
+
+    if (taskIndex === -1) {
+        console.log(`Task with id ${taskId} not found`)
+        return
+    }
+
+    tasks[taskIndex] = {
+        ...tasks[taskIndex],
+        name,
+        description,
+        updatedAt: date
+    }
+
+    try {
+        await fs.writeFile(tasksFile, JSON.stringify(tasks, null, 2))
+        console.log(`Task ${taskId} updated successfully`)
+    } catch (error) {
+        console.error("Error writing to file:", error.message)
+    }
+
+}
+
 async function updateStatus(args) {
     const [action, id] = args
     const tasks = await getTasks()
@@ -63,8 +91,6 @@ async function updateStatus(args) {
     } catch (error) {
         console.error("Error writing to file:", error.message)
     }
-
-
 }
 
 async function main() {
@@ -81,6 +107,9 @@ async function main() {
         case "mark-in-progress":
         case "mark-done":
             await updateStatus(args)
+            break;
+        case "update":
+            await updateTask(args)
             break;
         default:
             console.log("incorrect command")
