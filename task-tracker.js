@@ -36,7 +36,7 @@ async function addTasks(args) {
     const tasks = await getTasks()
     const [_, name, description] = args
     const date = new Date()
-    const id = tasks.length + 1
+    const id = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1
     const task = {id, name, description, status: "todo", createdAt: date, updatedAt: date};
     tasks.push(task)
     await updateFile(tasks,`Task added successfully (ID: ${id})` )
