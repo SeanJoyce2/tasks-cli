@@ -93,6 +93,28 @@ async function updateStatus(args) {
     }
 }
 
+async function deleteTask(args){
+    const [_, id] = args
+    const tasks = await getTasks()
+    const taskId = parseInt(id)
+    const taskIndex = tasks.findIndex(({id}) => id === taskId);
+
+    if (taskIndex === -1) {
+        console.log(`Task with id ${taskId} not found`)
+        return
+    }
+
+    tasks.splice(taskIndex, 1)
+
+    try {
+        await fs.writeFile(tasksFile, JSON.stringify(tasks, null, 2))
+        console.log(`Task ${taskId} deleted successfully`)
+    } catch (error) {
+        console.error("Error writing to file:", error.message)
+    }
+
+}
+
 async function main() {
     const args = process.argv.slice(2)
     const action = args[0].trim().toLowerCase()
@@ -110,6 +132,9 @@ async function main() {
             break;
         case "update":
             await updateTask(args)
+            break;
+        case "delete":
+            await deleteTask(args)
             break;
         default:
             console.log("incorrect command")
