@@ -1,4 +1,4 @@
-import {promises as fs }from "fs";
+import {promises as fs} from "fs";
 
 const tasksFile = "tasks.json"
 
@@ -14,7 +14,7 @@ async function fileExists(filePath) {
 
 
 async function getTasks() {
-    if(!(await fileExists(tasksFile))) {
+    if (!(await fileExists(tasksFile))) {
         const data = JSON.stringify([])
         await fs.writeFile(tasksFile, data)
         return []
@@ -24,15 +24,15 @@ async function getTasks() {
     }
 }
 
-async function addTasks(args){
+async function addTasks(args) {
     const tasks = await getTasks()
     const [_, name, description] = args
     const date = new Date()
-    const id = tasks.length
+    const id = tasks.length + 1
     const task = {id, name, description, status: "todo", createdAt: date, updatedAt: date};
     tasks.push(task)
     await fs.writeFile(tasksFile, JSON.stringify(tasks))
-    console.log(`Task added successfully (ID: ${id + 1})`)
+    console.log(`Task added successfully (ID: ${id})`)
 }
 
 async function listTasks() {
@@ -40,16 +40,47 @@ async function listTasks() {
     console.table(tasks)
 }
 
+async function updateStatus(args) {
+    const [action, id] = args
+    const tasks = await getTasks()
+    const taskId = parseInt(id)
+    const task = tasks.find(({id}) => id === taskId);
+
+    if (!task) {
+        console.log(`Task with id ${taskId} not found`)
+        return
+    }
+
+    if (action === "mark-in-progress") {
+        task.status = "mark-in-progress"
+    } else if (action === "mark-done") {
+        task.status = "mark-done"
+    }
+
+    try {
+        await fs.writeFile(tasksFile, JSON.stringify(tasks, null, 2))
+        console.log(`Task ${taskId} status updated successfully`)
+    } catch (error) {
+        console.error("Error writing to file:", error.message)
+    }
+
+
+}
+
 async function main() {
     const args = process.argv.slice(2)
     const action = args[0].trim().toLowerCase()
 
-    switch(action){
+    switch (action) {
         case "add":
             await addTasks(args)
             break;
         case "list":
             await listTasks()
+            break;
+        case "mark-in-progress":
+        case "mark-done":
+            await updateStatus(args)
             break;
         default:
             console.log("incorrect command")
