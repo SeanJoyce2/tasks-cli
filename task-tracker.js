@@ -1,30 +1,6 @@
 import {promises as fs} from "fs";
-
-const TASKS_FILENAME = "tasks.json"
-
-const STATUS = {
-    TODO: "todo",
-    IN_PROGRESS: "in-progress",
-    DONE: "done"
-}
-
-async function fileExists(filePath) {
-    try {
-        await fs.access(filePath)
-        return true;
-    } catch {
-        return false;
-    }
-}
-
-async function updateFile(tasks, message){
-    try {
-        await fs.writeFile(TASKS_FILENAME, JSON.stringify(tasks, null, 2))
-        console.log(message)
-    } catch (error) {
-        console.error("Error writing to file:", error.message)
-    }
-}
+import {STATUS, TASKS_FILENAME} from "./constants";
+import {fileExists, updateFile} from "./helpers";
 
 
 async function getTasks() {
